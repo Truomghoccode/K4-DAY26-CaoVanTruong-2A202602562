@@ -19,7 +19,8 @@ import os
 from mcp import ClientSession
 from mcp.client.streamable_http import create_mcp_http_client, streamable_http_client
 
-SERVER_URL = "http://localhost:8000/mcp"
+PORT = int(os.environ.get("PORT", 8001))
+SERVER_URL = os.environ.get("MCP_SERVER_URL", f"http://localhost:{PORT}/mcp")
 TOKEN = os.environ.get("MCP_AUTH_TOKEN", "dev-token-abc123")
 
 
@@ -28,21 +29,28 @@ async def main() -> None:
         headers={"Authorization": f"Bearer {TOKEN}"},
     )
 
-    async with http_client:
-        async with streamable_http_client(SERVER_URL, http_client=http_client) as (
-            read,
-            write,
-        ):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
+    try:
+        async with http_client:
+            async with streamable_http_client(SERVER_URL, http_client=http_client) as (
+                read,
+                write,
+            ):
+                async with ClientSession(read, write) as session:
+                    await session.initialize()
 
-                tools = await session.list_tools()
-                print("Tools (có auth):")
-                for t in tools.tools:
-                    print(f"  - {t.name}: {t.description}")
+                    tools = await session.list_tools()
+                    print("Tools (có auth):")
+                    for t in tools.tools:
+                        print(f"  - {t.name}: {t.description}")
 
-                result = await session.call_tool("get_weather", {"city": "Hanoi"})
-                print(f"\nKết quả: {result.content[0].text}")
+                    result = await session.call_tool("get_weather", {"city": "Hanoi"})
+                    print(f"\nKết quả: {result.content[0].text}")
+    except Exception as e:
+        msg = e
+        if hasattr(e, "exceptions") and e.exceptions:
+            sub = e.exceptions[0]
+            msg = sub.exceptions[0] if hasattr(sub, "exceptions") and sub.exceptions else sub
+        print(f"\n❌ [Xác thực thất bại] Request bị server từ chối: {msg}")
 
 
 if __name__ == "__main__":

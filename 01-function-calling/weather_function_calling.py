@@ -12,9 +12,17 @@ Cách chạy:
 from google import genai
 from google.genai import types
 
-client = genai.Client()
+import os
+from dotenv import load_dotenv
 
-MODEL = "gemini-2.5-flash"
+# Nạp API key từ .env hiện tại hoặc thư mục lab 04
+load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(__file__), "..", "04-lab", "mcp-client", ".env"))
+
+api_key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+client = genai.Client(api_key=api_key) if api_key else genai.Client()
+
+MODEL = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
 
 SYSTEM_INSTRUCTION = (
     "Bạn là trợ lý thời tiết thân thiện, trả lời bằng tiếng Việt tự nhiên. "

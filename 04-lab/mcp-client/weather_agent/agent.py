@@ -6,6 +6,10 @@ from google.adk import Agent
 from google.adk.tools.mcp_tool.mcp_toolset import McpToolset, StreamableHTTPConnectionParams
 import logging
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -33,9 +37,10 @@ try:
     logger.info("✅ MCP toolset created successfully")
     
     # Create the agent with remote MCP tools
+    model_name = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview")
     root_agent = Agent(
         name="weather_agent",
-        model="gemini-2.5-flash",
+        model=model_name,
         tools=[weather_tools],
     )
     logger.info("✅ Weather agent initialized with remote MCP tools:")
@@ -54,6 +59,6 @@ except Exception as e:
     logger.warning("⚠️  Creating fallback agent without MCP tools")
     root_agent = Agent(
         name="weather_agent",
-        model="gemini-2.5-flash",
+        model=os.getenv("GEMINI_MODEL", "gemini-3-flash-preview"),
     )
 
